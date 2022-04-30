@@ -9,7 +9,6 @@ UINT br, bw;  // File read/write count
 /**** capacity related *****/
 FATFS *pfs;
 DWORD fre_clust;
-uint32_t total, free_space;
 
 FRESULT SDCard_mount(const TCHAR* path) {
 	fresult = f_mount(&fs, path, 1);
@@ -112,6 +111,36 @@ FRESULT SDCard_scanFolder(char* folder, uint8_t maxItems, uint8_t maxPathLength,
     }
 
     return fresult;
+}
+
+FRESULT SDCard_checkCapacity(SDCard_capacity* capacity) {
+	FRESULT fresult = f_getfree("", &fre_clust, &pfs);
+
+	if (fresult != FR_OK) {
+		#ifdef SD_CARD_DEBUG
+			SDCard_debug("Error, cannot read the SD card's capacity information!\n\r");
+		#endif
+
+		return fresult;
+	}
+
+	uint32_t total_capacity = (uint32_t)((pfs->n_fatent - 2) * pfs->csize * 0.5);
+	uint32_t free_space = (uint32_t)(fre_clust * pfs->csize * 0.5);
+	uint32_t used_space = total_capacity - free_space;
+
+    capacity->total = total_capacity;
+    capacity->free = free_space;
+    capacity->used = used_space;
+
+	#ifdef SD_CARD_DEBUG
+    	char *buf = malloc(30*sizeof(char));
+
+		sprintf(buf, "Total capacity: \t%lu\n\rUsed: \t%lu\n\rAvailable: \t%lu\n", total_capacity, used_space, free_space);
+		SDCard_debug(buf);
+		free(buf);
+	#endif
+
+	return fresult;
 }
 
 /* Only supports removing files from home directory */
@@ -396,20 +425,3 @@ FRESULT SDCard_createDirectory(char *name) {
 
     return fresult;
 }
-
-FRESULT SDCard_checkSpace (void) {
-    /* Check free space */
-    f_getfree("", &fre_clust, &pfs);
-
-    total = (uint32_t)((pfs->n_fatent - 2) * pfs->csize * 0.5);
-    char *buf = malloc(30*sizeof(char));
-    sprintf (buf, "SD CARD Total Size: \t%lu\n",total);
-    SDCard_debug(buf);
-    free(buf);
-    free_space = (uint32_t)(fre_clust * pfs->csize * 0.5);
-    buf = malloc(30*sizeof(char));
-    sprintf (buf, "SD CARD Free Space: \t%lu\n",free_space);
-    SDCard_debug(buf);
-    free(buf);
-}
-

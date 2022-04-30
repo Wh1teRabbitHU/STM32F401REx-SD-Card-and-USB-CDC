@@ -119,13 +119,14 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t maxItems = 2;
-  uint8_t maxPathLength = 255;
-  char scanOutput[maxItems][maxPathLength];
+//  uint8_t maxItems = 5;
+//  uint8_t maxPathLength = 30;
+//  char scanOutput[maxItems][maxPathLength];
+  SDCard_capacity capacity = {0};
 
   SDCard_mount("/");
-  SDCard_scanFolder("/", maxItems, maxPathLength, scanOutput);
-  SDCard_checkSpace();
+//  SDCard_scanFolder("/", maxItems, maxPathLength, scanOutput);
+  SDCard_checkCapacity(&capacity);
   result = SDCard_createFile("FILE1.TXT");
 
   if (result != FR_OK) {

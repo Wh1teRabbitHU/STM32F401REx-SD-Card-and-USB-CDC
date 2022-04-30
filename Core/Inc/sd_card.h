@@ -7,9 +7,15 @@
 
 extern void SDCard_debug(char *string);
 
+typedef struct SDCard_capacity {
+	uint32_t total;
+	uint32_t used;
+	uint32_t free;
+} SDCard_capacity;
+
 FRESULT SDCard_mount(const TCHAR* path);
 FRESULT SDCard_unmount(const TCHAR* path);
-FRESULT SDCard_checkSpace(void);
+FRESULT SDCard_checkCapacity(SDCard_capacity* capacity);
 FRESULT SDCard_scanFolder(char* folder, uint8_t maxItems, uint8_t maxPathLength, char foundItems[maxItems][maxPathLength]);
 FRESULT SDCard_removeFiles(void);
 FRESULT SDCard_writeFile(char *name, char *data);
