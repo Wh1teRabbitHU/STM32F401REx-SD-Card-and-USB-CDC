@@ -5,7 +5,7 @@
 #include "string.h"
 #include "stdio.h"
 
-extern void SDCard_debug(char *string);
+extern void SDCard_debug(char *log);
 
 typedef struct SDCard_capacity {
 	uint32_t total;

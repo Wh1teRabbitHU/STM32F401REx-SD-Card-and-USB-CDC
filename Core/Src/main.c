@@ -80,8 +80,8 @@ int Debug_write(uint8_t * pointer, uint16_t length) {
 	return i;
 }
 
-void SDCard_debug(char *string) {
-	HAL_UART_Transmit(&huart2, (uint8_t *)string, strlen (string), HAL_MAX_DELAY);
+void SDCard_debug(char *log) {
+	HAL_UART_Transmit(&huart2, (uint8_t *)log, strlen(log), HAL_MAX_DELAY);
 }
 /* USER CODE END 0 */
 
