@@ -7,10 +7,10 @@
 
 extern void SDCard_debug(char *string);
 
-void SDCard_mount(const TCHAR* path);
-void SDCard_unmount(const TCHAR* path);
-void SDCard_checkSpace(void);
-FRESULT SDCard_scan(char* pat);
+FRESULT SDCard_mount(const TCHAR* path);
+FRESULT SDCard_unmount(const TCHAR* path);
+FRESULT SDCard_checkSpace(void);
+FRESULT SDCard_scanFolder(char* folder, uint8_t maxItems, uint8_t maxPathLength, char foundItems[maxItems][maxPathLength]);
 FRESULT SDCard_removeFiles(void);
 FRESULT SDCard_writeFile(char *name, char *data);
 FRESULT SDCard_readFile (char *name);

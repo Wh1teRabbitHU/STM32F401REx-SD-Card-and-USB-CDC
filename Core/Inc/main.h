@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#define SD_CARD_DEBUG
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

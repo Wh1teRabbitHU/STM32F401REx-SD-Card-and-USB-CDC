@@ -11,63 +11,106 @@ FATFS *pfs;
 DWORD fre_clust;
 uint32_t total, free_space;
 
-void SDCard_mount(const TCHAR* path) {
+FRESULT SDCard_mount(const TCHAR* path) {
 	fresult = f_mount(&fs, path, 1);
 
-	if (fresult != FR_OK) {
-		SDCard_debug("ERROR!!! in mounting SD CARD...\n\n");
-	} else {
-		SDCard_debug("SD CARD mounted successfully...\n");
-	}
+	#ifdef SD_CARD_DEBUG
+		if (fresult == FR_OK) {
+			SDCard_debug("The SD card has been mounted successfully!\n\r");
+		} else {
+			SDCard_debug("Error, couldn't mount the SD card!\n\r");
+		}
+	#endif
+
+	return fresult;
 }
 
-void SDCard_unmount(const TCHAR* path) {
+FRESULT SDCard_unmount(const TCHAR* path) {
 	fresult = f_mount(NULL, path, 1);
 
-	if (fresult == FR_OK) {
-		SDCard_debug("SD CARD UNMOUNTED successfully...\n\n\n");
-	} else {
-		SDCard_debug("ERROR!!! in UNMOUNTING SD CARD\n\n\n");
-	}
+	#ifdef SD_CARD_DEBUG
+		if (fresult == FR_OK) {
+			SDCard_debug("The SD card has been unmounted successfully!\n\r");
+		} else {
+			SDCard_debug("Error, couldn't unmount the SD card!\n\r");
+		}
+	#endif
+
+	return fresult;
 }
 
-/* Start node to be scanned (***also used as work area***) */
-FRESULT SDCard_scan(char* scannable_path) {
+FRESULT SDCard_scanFolder(char* folder, uint8_t maxItems, uint8_t maxPathLength, char foundItems[maxItems][maxPathLength]) {
     DIR dir;
-    UINT i;
-    char *path = malloc(20*sizeof (char));
-    sprintf(path, "%s",scannable_path);
 
-    fresult = f_opendir(&dir, path);   /* Open the directory */
+    fresult = f_opendir(&dir, folder);   /* Open the directory */
 
-    if (fresult == FR_OK) {
-        while (1) {
-            fresult = f_readdir(&dir, &fno);                   /* Read a directory item */
-            if (fresult != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+    if (fresult != FR_OK) {
+		#ifdef SD_CARD_DEBUG
+    		SDCard_debug("Error, the given directory cannot be opened, doesn't exist or not a directory!\n\r");
+		#endif
 
-            if (fno.fattrib & AM_DIR) {  /* It is a directory */
-            	if (!(strcmp ("SYSTEM~1", fno.fname))) continue;
-            	char *buf = malloc(30*sizeof(char));
-            	sprintf (buf, "Dir: %s\r\n", fno.fname);
-            	SDCard_debug(buf);
-            	free(buf);
-                i = strlen(path);
-                sprintf(&path[i], "/%s", fno.fname);
-                fresult = SDCard_scan(path);                     /* Enter the directory */
-                if (fresult != FR_OK) break;
-                path[i] = 0;
-            } else { /* It is a file. */
-           	   char *buf = malloc(30*sizeof(char));
-               sprintf(buf,"File: %s/%s\n", path, fno.fname);
-               SDCard_debug(buf);
-               free(buf);
-            }
-        }
-
-        f_closedir(&dir);
+    	return fresult;
     }
 
-    free(path);
+    char *current_path = malloc(strlen(folder) * sizeof(char));
+    sprintf(current_path, "%s", folder);
+
+	#ifdef SD_CARD_DEBUG
+    	SDCard_debug("Reading directory...\n\r");
+	#endif
+
+    uint8_t currentIndex = 0;
+
+	while (currentIndex < maxItems) {
+		fresult = f_readdir(&dir, &fno);
+
+		if (fresult != FR_OK) {
+			#ifdef SD_CARD_DEBUG
+    			SDCard_debug("Error, couldn't read the given directory!\n\r");
+			#endif
+
+			return fresult;
+		}
+
+		if (fno.fname[0] == 0) { /* End of folder */
+			break;
+		}
+
+		if (!(strcmp("SYSTEM~1", fno.fname))) {
+			continue;
+		}
+
+		uint8_t isDirectory = fno.fattrib & AM_DIR;
+		char *buf = malloc(maxPathLength * sizeof(char));
+
+		if (isDirectory) {
+			sprintf(buf, "%s/%s/", current_path, fno.fname);
+		} else {
+			sprintf(buf,"%s/%s", current_path, fno.fname);
+		}
+
+		memset(foundItems[currentIndex], 0, maxPathLength);
+		strcpy(foundItems[currentIndex++], buf);
+
+		#ifdef SD_CARD_DEBUG
+			uint8_t sizeOfBuff = sizeof(buf);
+			char *debugBuffer = malloc((sizeOfBuff > 253 ? sizeOfBuff : sizeOfBuff + 2) * sizeof(char));
+
+			sprintf(debugBuffer,"%s\n\r", buf);
+			SDCard_debug(debugBuffer);
+			free(debugBuffer);
+		#endif
+
+		free(buf);
+	}
+
+	f_closedir(&dir);
+    free(current_path);
+
+    while (currentIndex < maxItems) {
+    	memset(foundItems[currentIndex++], 0, maxPathLength);
+    }
+
     return fresult;
 }
 
@@ -354,7 +397,7 @@ FRESULT SDCard_createDirectory(char *name) {
     return fresult;
 }
 
-void SDCard_checkSpace (void) {
+FRESULT SDCard_checkSpace (void) {
     /* Check free space */
     f_getfree("", &fre_clust, &pfs);
 
