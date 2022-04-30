@@ -8,7 +8,7 @@ This repository contains working example codes for SD Card management through SD
 
 This library is made for the SDIO connection using the provided middlewares from ST (those are also included in this project) For a working exact wiring design, please follow the one I've made bellow. Important to note, that although it is working on a breadboard, I had to reduce the clock speed significantly, for high performance applications, highly recommended to design a custom PCB and to use as short as possible traces.
 
-![SD Card schematic](media/SD_Card_Connection_Schematic.png)
+![SD Card schematic](Media/SD_Card_Connection_Schematic.png)
 
 Using STM32Cube IDE first you need to enable the SDIO function, setting the mode to "SD 4 bits Wide bus", then in the Middleware section, enabling the FatFS by checking the SD Card checkbox. By default you don't need to change anything here, it should work if everything else is correctly set up. (Clock and circuit) It might ask you to set up an extra pin for card detection, you should wire that pin to the card detect pin on the sd card slot. Sidenote: for me this never worked, that pin is always floating, so I had to manually connect the STM pin to ground to start working. (it can be an issue in the slot itself, so it might work with an other piece, but I don't have a spare one to test)
 
@@ -43,7 +43,7 @@ You need an sd card formatted as Fat32. The best if you start with a freshly for
 
 In case of error (FR_DISK_ERR), you need to lower the clock speed in the initialisation part of your code by increasing the clock divider value. If you use the GUI tool, then you can find it under "Connectivity/SDIO/SDIOCLK clock divide factor". As the description says, the value is calculated by the following formula: SDIOCLK/(CLKDIV + 2) The maximum frequency is 24MHz
 
-![SDIO clock divider](media/STM32CubeIDE_Changing_SDIO_Clock_Divider.png)
+![SDIO clock divider](Media/STM32CubeIDE_Changing_SDIO_Clock_Divider.png)
 
 
 
